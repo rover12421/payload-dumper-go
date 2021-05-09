@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"sort"
 	"sync"
@@ -312,6 +313,81 @@ func (p *Payload) spawnExtractWorkers(n int) {
 }
 
 func (p *Payload) ExtractSelected(targetDirectory string, partitions []string) error {
+
+	if !p.initialized {
+		return errors.New("Payload has not been initialized")
+	}
+	p.progress = mpb.New()
+
+	p.requests = make(chan *request, 100)
+	p.spawnExtractWorkers(4)
+
+	sort.Strings(partitions)
+
+	all_partitions := make(map[string]int)
+
+	for index, partition := range p.deltaArchiveManifest.Partitions {
+		all_partitions[partition.GetPartitionName()] = index
+	}
+
+	_, ok := all_partitions[partitions[0]]
+
+	dump_flag := false
+
+	for _, partition := range p.deltaArchiveManifest.Partitions {
+		if len(partitions) > 0 {
+			idx := sort.SearchStrings(partitions, *partition.PartitionName)
+			if idx == len(partitions) || partitions[idx] != *partition.PartitionName {
+				continue
+
+			}
+		}
+
+		if ok {
+			dump_flag = true
+			if exists, _ := PathExists(targetDirectory); exists == false {
+				if err := os.Mkdir(targetDirectory, 0755); err != nil {
+					log.Fatal("Failed to create target directory")
+				}
+			}
+			fmt.Printf(targetDirectory)
+			p.workerWG.Add(1)
+			p.requests <- &request{
+				partition:       partition,
+				targetDirectory: targetDirectory,
+			}
+		}
+	}
+
+	p.workerWG.Wait()
+	close(p.requests)
+
+	if dump_flag {
+		return nil
+	} else {
+		return errors.New("Can't find target partition")
+	}
+
+}
+
+func PathExists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
+}
+
+func (p *Payload) DefaultExtract(targetDirectory string, partitions []string) error {
+
+	if exists, _ := PathExists(targetDirectory); exists == false {
+		if err := os.Mkdir(targetDirectory, 0755); err != nil {
+			log.Fatal("Failed to create target directory")
+		}
+	}
 	if !p.initialized {
 		return errors.New("Payload has not been initialized")
 	}
@@ -344,5 +420,5 @@ func (p *Payload) ExtractSelected(targetDirectory string, partitions []string) e
 }
 
 func (p *Payload) ExtractAll(targetDirectory string) error {
-	return p.ExtractSelected(targetDirectory, nil)
+	return p.DefaultExtract(targetDirectory, nil)
 }
