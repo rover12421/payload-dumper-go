@@ -50,7 +50,7 @@ func main() {
 
 	list := flag.Bool("l", false, "Show list of partitions in payload.bin")
 	partitions := flag.String("p", "", "Dump only selected partitions ,each 10 minutes dump files include one folder")
-	targetDir := flag.String("d", "", "Dump file save dir")
+	targetDir := flag.String("d", "0", "Dump file save dir")
 
 	fmt.Println(targetDir)
 	flag.Parse()
