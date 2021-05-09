@@ -50,6 +50,9 @@ func main() {
 
 	list := flag.Bool("l", false, "Show list of partitions in payload.bin")
 	partitions := flag.String("p", "", "Dump only selected partitions ,each 10 minutes dump files include one folder")
+	targetDir := flag.String("d", "", "Dump file save dir")
+
+	fmt.Println(targetDir)
 	flag.Parse()
 
 	if flag.NArg() == 0 {
@@ -84,8 +87,8 @@ func main() {
 	}
 
 	now := time.Now()
-	targetDirectory := fmt.Sprintf("extracted_%d%02d%02d_%d%d", now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute()/10)
-	
+	targetDirectory := fmt.Sprintf("extracted_%d%02d%02d_%02d%02d_%s", now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), *targetDir)
+
 	if *partitions != "" {
 		if err := payload.ExtractSelected(targetDirectory, strings.Split(*partitions, ",")); err != nil {
 			log.Fatal(err)
@@ -96,7 +99,6 @@ func main() {
 		}
 	}
 }
-
 
 func usage() {
 	fmt.Fprintf(os.Stderr, "Usage: %s [inputfile]\n", os.Args[0])
