@@ -85,10 +85,7 @@ func main() {
 
 	now := time.Now()
 	targetDirectory := fmt.Sprintf("extracted_%d%02d%02d_%d%d", now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute()/10)
-
-
-
-
+	
 	if *partitions != "" {
 		if err := payload.ExtractSelected(targetDirectory, strings.Split(*partitions, ",")); err != nil {
 			log.Fatal(err)
