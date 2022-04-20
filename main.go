@@ -50,7 +50,7 @@ func main() {
 
 	list := flag.Bool("l", false, "Show list of partitions in payload.bin")
 	partitions := flag.String("p", "", "Dump only selected partitions ,each 10 minutes dump files include one folder")
-	targetDir := flag.String("d", "0", "Dump file save dir")
+	targetDir := flag.String("d", "all", "Dump file save dir")
 
 	fmt.Println(targetDir)
 	flag.Parse()
@@ -65,16 +65,16 @@ func main() {
 	}
 
 	payloadBin := filename
-	// if strings.HasSuffix(filename, ".zip") {
-	// 	fmt.Println("Please wait while extracting payload.bin from the archive.")
-	// 	payloadBin = extractPayloadBin(filename)
-	// 	if payloadBin == "" {
-	// 		log.Fatal("Failed to extract payload.bin from the archive.")
-	// 	} else {
-	// 		defer os.Remove(payloadBin)
-	// 	}
-	// }
-	// fmt.Printf("payload.bin: %s\n", payloadBin)
+	if strings.HasSuffix(filename, ".zip") {
+		fmt.Println("Please wait while extracting payload.bin from the archive.")
+		payloadBin = extractPayloadBin(filename)
+		if payloadBin == "" {
+			log.Fatal("Failed to extract payload.bin from the archive.")
+		} else {
+			defer os.Remove(payloadBin)
+		}
+	}
+	fmt.Printf("payload.bin: %s\n", payloadBin)
 
 	payload := NewPayload(payloadBin)
 	if err := payload.Open(); err != nil {
@@ -87,7 +87,7 @@ func main() {
 	}
 
 	now := time.Now()
-	targetDirectory := fmt.Sprintf("extracted_%d%02d%02d_%02d%02d_%s", now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), *targetDir)
+	targetDirectory := fmt.Sprintf("extracted_%d%02d%02d_%s", now.Year(), now.Month(), now.Day(), *targetDir)
 
 	if *partitions != "" {
 		if err := payload.ExtractSelected(targetDirectory, strings.Split(*partitions, ",")); err != nil {
@@ -101,7 +101,7 @@ func main() {
 }
 
 func usage() {
-	fmt.Fprintf(os.Stderr, "Usage: %s [inputfile]\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "Usage: %s [options] [inputfile]\n", os.Args[0])
 	flag.PrintDefaults()
 	os.Exit(2)
 }

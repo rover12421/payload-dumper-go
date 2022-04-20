@@ -72,7 +72,7 @@ func (ph *payloadHeader) ReadFromPayload() error {
 		return err
 	}
 	ph.Version = binary.BigEndian.Uint64(buf)
-	fmt.Printf("Payload Version: %d\n", ph.Version)
+	//fmt.Printf("Payload Version: %d\n", ph.Version)
 
 	if ph.Version != brilloMajorPayloadVersion {
 		return fmt.Errorf("Unsupported payload version: %d", ph.Version)
@@ -84,7 +84,7 @@ func (ph *payloadHeader) ReadFromPayload() error {
 		return err
 	}
 	ph.ManifestLen = binary.BigEndian.Uint64(buf)
-	fmt.Printf("Payload Manifest Length: %d\n", ph.ManifestLen)
+	//fmt.Printf("Payload Manifest Length: %d\n", ph.ManifestLen)
 
 	ph.Size = 24
 
@@ -94,7 +94,7 @@ func (ph *payloadHeader) ReadFromPayload() error {
 		return err
 	}
 	ph.MetadataSignatureLen = binary.BigEndian.Uint32(buf)
-	fmt.Printf("Payload Manifest Signature Length: %d\n", ph.MetadataSignatureLen)
+	//fmt.Printf("Payload Manifest Signature Length: %d\n", ph.MetadataSignatureLen)
 
 	return nil
 }
@@ -350,7 +350,8 @@ func (p *Payload) ExtractSelected(targetDirectory string, partitions []string) e
 					log.Fatal("Failed to create target directory")
 				}
 			}
-			fmt.Printf(targetDirectory)
+			fmt.Println("\n+++++++++++ extra dir: ",targetDirectory  ,"+++++++++++\n")
+			//fmt.Printf("\n")
 			p.workerWG.Add(1)
 			p.requests <- &request{
 				partition:       partition,
