@@ -15,7 +15,9 @@ import (
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/golang/protobuf/proto"
-	xz "github.com/spencercw/go-xz"
+	// xz "github.com/spencercw/go-xz"
+	xz "github.com/smira/go-xz"
+	// xz "github.com/ulikunitz/xz"
 	"github.com/ssut/payload-dumper-go/chromeos_update_engine"
 	"github.com/vbauerster/mpb/v5"
 	"github.com/vbauerster/mpb/v5/decor"
@@ -251,12 +253,14 @@ func (p *Payload) Extract(partition *chromeos_update_engine.PartitionUpdate, out
 			break
 
 		case chromeos_update_engine.InstallOperation_REPLACE_XZ:
-			reader := xz.NewDecompressionReader(teeReader)
-			n, err := io.Copy(out, &reader)
+			reader, err := xz.NewReader(teeReader)
 			if err != nil {
 				return err
 			}
-			reader.Close()
+			n, err := io.Copy(out, reader)
+			if err != nil {
+				return err
+			}
 			if n != expectedUncompressedBlockSize {
 				return fmt.Errorf("Verify failed (Unexpected bytes written): %s (%d != %d)", name, n, expectedUncompressedBlockSize)
 			}
